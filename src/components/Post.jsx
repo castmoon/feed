@@ -29,7 +29,7 @@ const Post = ({ author, content, publishedAt }) => {
 			},
 			text: 'muito bom!',
 			publishedAt: new Date('2022-05-03 20:00:00'),
-			likes: 20,
+			likes: 0,
 		},
 		{
 			id: 2,
@@ -39,11 +39,13 @@ const Post = ({ author, content, publishedAt }) => {
 			},
 			text: 'massa!',
 			publishedAt: new Date('2022-05-03 20:00:00'),
-			likes: 20,
+			likes: 0,
 		},
 	]);
 
 	const [commentText, setCommentText] = useState('');
+
+	const isEmptyTextarea = !commentText.length ? true : false;
 
 	function handleCreateNewComment(event) {
 		event.preventDefault();
@@ -64,9 +66,21 @@ const Post = ({ author, content, publishedAt }) => {
 	}
 
 	function handleRemoveAComment(id) {
-		const filteredComments = comment.filter((comment) => comment.id !== id);
-		setComment([...filteredComments]);
+		const commentsWithoutDeleted = comment.filter(
+			(comment) => comment.id !== id
+		);
+		setComment([...commentsWithoutDeleted]);
 	}
+
+	function handleNewCommentChange(event) {
+		event.target.setCustomValidity('');
+		setCommentText(event.target.value);
+	}
+
+	function handleNewCommentInvalid() {
+		event.target.setCustomValidity('Esse campo é obrigatório.');
+	}
+
 	return (
 		<article className={styles.post}>
 			<header>
@@ -89,11 +103,11 @@ const Post = ({ author, content, publishedAt }) => {
 			<div className={styles.content}>
 				{content.map((line) => {
 					if (line.type === 'paragraph') {
-						return <p>{line.content}</p>;
+						return <p key={line.content}>{line.content}</p>;
 					}
 					if (line.type === 'link') {
 						return (
-							<p>
+							<p key={line.content}>
 								<a href="#">{line.content}</a>
 							</p>
 						);
@@ -108,13 +122,17 @@ const Post = ({ author, content, publishedAt }) => {
 				<strong>Deixe seu comentário</strong>
 
 				<textarea
-					onChange={(e) => setCommentText(e.target.value)}
+					onChange={handleNewCommentChange}
 					placeholder="Comentário"
 					value={commentText}
+					onInvalid={handleNewCommentInvalid}
+					required
 				/>
 
 				<footer>
-					<button type="submit">Comentar</button>
+					<button type="submit" disabled={isEmptyTextarea}>
+						Comentar
+					</button>
 				</footer>
 			</form>
 
@@ -127,6 +145,7 @@ const Post = ({ author, content, publishedAt }) => {
 						text={comment.text}
 						id={comment.id}
 						onDelete={handleRemoveAComment}
+						likes={comment.likes}
 					/>
 				))}
 			</div>
